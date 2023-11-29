@@ -207,7 +207,7 @@ class StudentViewModel(
             is StudentRegistrationFormEvent.ExportList -> {
                 exportToExcel(
                     state2.value.students,
-                    generateFilePath("myDoc.xlsx", Environment.DIRECTORY_DOCUMENTS)
+                    generateFilePath("${state2.value.sortType}.xlsx", Environment.DIRECTORY_DOCUMENTS)
                 )
             }
         }

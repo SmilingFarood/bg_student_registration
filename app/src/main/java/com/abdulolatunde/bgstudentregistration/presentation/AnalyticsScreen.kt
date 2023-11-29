@@ -2,7 +2,9 @@ package com.abdulolatunde.bgstudentregistration.presentation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -62,17 +64,23 @@ fun AnalyticsScreen(navController: NavController, viewModel: StudentViewModel) {
                     description = "Number of students enrolled in total",
                     data = "${state.allStudentCount}"
                 )
+                Spacer(modifier = Modifier.height(16.dp))
                 StudentDetailRow(
                     description = "Number of ${state.countKeyword} students enrolled",
                     data = "${state.searchCount}"
                 )
+                Spacer(modifier = Modifier.height(16.dp))
                 TextField(
                     value = state.countKeyword,
+                    label = {
+                            Text(text = "Enter the search term")
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     onValueChange = {
                         viewModel.onEvent(StudentRegistrationFormEvent.CountKeywordChanged(it))
                     },
                 )
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     modifier = Modifier.fillMaxWidth(),
