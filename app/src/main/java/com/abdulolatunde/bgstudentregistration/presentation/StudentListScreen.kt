@@ -48,8 +48,6 @@ fun StudentListScreen(
     var sortType by remember {
         mutableStateOf(SortType.FIRST_NAME)
     }
-    Log.i("Farood", "Students is ${students.students}")
-
     LaunchedEffect(key1 = true) {
         viewModel.onEvent(StudentRegistrationFormEvent.GetStudentList(SortType.FIRST_NAME))
     }
@@ -260,8 +258,6 @@ fun StudentListScreen(
                     )
                 }
             }
-
-
         }
     }
 }

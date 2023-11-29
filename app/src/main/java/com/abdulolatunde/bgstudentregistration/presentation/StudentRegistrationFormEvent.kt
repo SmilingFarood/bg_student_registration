@@ -16,6 +16,9 @@ sealed interface StudentRegistrationFormEvent {
 
     data class BlacklistStudent(val student: Student) : StudentRegistrationFormEvent
     data class GetStudentById(val id: Int) : StudentRegistrationFormEvent
+    object ShowConfirmRegistrationDialog : StudentRegistrationFormEvent
+    object HideConfirmRegistrationDialog : StudentRegistrationFormEvent
+
     object Submit : StudentRegistrationFormEvent
     object ShowDialog : StudentRegistrationFormEvent
     object HideDialog : StudentRegistrationFormEvent
