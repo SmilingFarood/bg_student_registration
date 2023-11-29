@@ -13,6 +13,7 @@ import com.abdulolatunde.bgstudentregistration.use_cases.Student
 import com.abdulolatunde.bgstudentregistration.use_cases.StudentDao
 import com.abdulolatunde.bgstudentregistration.use_cases.SortType
 import com.abdulolatunde.bgstudentregistration.use_cases.ValidateFirstname
+import com.abdulolatunde.bgstudentregistration.use_cases.ValidateImageUpload
 import com.abdulolatunde.bgstudentregistration.use_cases.ValidateLastname
 import com.abdulolatunde.bgstudentregistration.use_cases.ValidateStudentCourse
 import com.abdulolatunde.bgstudentregistration.use_cases.ValidateStudentFaculty
@@ -45,7 +46,8 @@ class StudentViewModel(
     private val validateStudentCourse: ValidateStudentCourse = ValidateStudentCourse(),
     private val validateStudentFaculty: ValidateStudentFaculty = ValidateStudentFaculty(),
     private val validateStudentLGA: ValidateStudentLGA = ValidateStudentLGA(),
-    private val validateStudentStateOfOrg: ValidateStudentStateOfOrg = ValidateStudentStateOfOrg()
+    private val validateStudentStateOfOrg: ValidateStudentStateOfOrg = ValidateStudentStateOfOrg(),
+    private val validateStudentImage: ValidateImageUpload = ValidateImageUpload(),
 ) : ViewModel() {
 
     private val _sortType = MutableStateFlow(SortType.FIRST_NAME)
@@ -133,6 +135,22 @@ class StudentViewModel(
                 state = state.copy(imagePath = event.imagePath)
             }
 
+            is StudentRegistrationFormEvent.ShowConfirmRegistrationDialog -> {
+                _state2.update {
+                    it.copy(
+                        isConfirmingStudentInfo = true
+                    )
+                }
+            }
+
+            is StudentRegistrationFormEvent.HideConfirmRegistrationDialog -> {
+                _state2.update {
+                    it.copy(
+                        isConfirmingStudentInfo = false
+                    )
+                }
+            }
+
             is StudentRegistrationFormEvent.Submit -> {
                 submitForm()
             }
@@ -196,7 +214,6 @@ class StudentViewModel(
             }
 
             is StudentRegistrationFormEvent.PerformSearchCount -> {
-                Log.i("Farood", "General count")
                 viewModelScope.launch {
                     state = state.copy(
                         searchCount = dao.searchCount(state.countKeyword)
@@ -207,7 +224,10 @@ class StudentViewModel(
             is StudentRegistrationFormEvent.ExportList -> {
                 exportToExcel(
                     state2.value.students,
-                    generateFilePath("${state2.value.sortType}.xlsx", Environment.DIRECTORY_DOCUMENTS)
+                    generateFilePath(
+                        "${state2.value.sortType}.xlsx",
+                        Environment.DIRECTORY_DOCUMENTS
+                    )
                 )
             }
         }
@@ -220,6 +240,7 @@ class StudentViewModel(
         val facultyResult = validateStudentFaculty.execute(state.faculty)
         val lgaResult = validateStudentLGA.execute(state.lga)
         val stateOfOrgResult = validateStudentStateOfOrg.execute(state.stateOfOrg)
+        val studentImageResult = validateStudentImage.execute(bitmaps.value)
 
         val hasError = listOf(
             firstNameResult,
@@ -227,7 +248,8 @@ class StudentViewModel(
             courseResult,
             facultyResult,
             lgaResult,
-            stateOfOrgResult
+            stateOfOrgResult,
+            studentImageResult
         ).any { !it.successful }
         if (hasError) {
             state = state.copy(
@@ -237,6 +259,7 @@ class StudentViewModel(
                 facultyError = facultyResult.errorMessage,
                 stateOfOrgError = facultyResult.errorMessage,
                 lgaError = lgaResult.errorMessage,
+                imagePathError = studentImageResult.errorMessage,
             )
             Log.i("Farood", "There is a validation error")
             return
@@ -254,10 +277,9 @@ class StudentViewModel(
             studentId = generateStudentId(state.course),
             imagePath = state.imagePath,
         )
-        Log.i("Farood", "Launching scope")
+
         viewModelScope.launch {
             dao.upsertStudent(student)
-            Log.i("Farood", "student is: $student")
             validationEventChannel.send(ValidationEvent.Success)
         }.also {
             state = state.copy(

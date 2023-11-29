@@ -2,6 +2,7 @@ package com.abdulolatunde.bgstudentregistration.presentation
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,6 +24,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -96,10 +98,29 @@ fun AddStudentScreen(navController: NavController, viewModel: StudentViewModel) 
                         navController.popBackStack()
                     }
 
-                    else -> {}
                 }
             }
         }
+
+//        if (viewModel.state.isConfirmingStudentInfo) {
+//            ConfirmationAlertDialog(
+//                onConfirmation = {
+//                    viewModel.onEvent(StudentRegistrationFormEvent.Submit)
+//                },
+//                onDismissRequest = {
+//                    viewModel.onEvent(StudentRegistrationFormEvent.HideConfirmRegistrationDialog)
+//                },
+//                student = Student(
+//                    firstName = state.firstName,
+//                    lastName = state.lastName,
+//                    locationState = state.stateOfOrg,
+//                    locationLGA = state.lga,
+//                    imagePath = state.imagePath,
+//                    course = state.course,
+//                    faculty = state.faculty,
+//                )
+//            )
+//        }
         Column(
             modifier = Modifier
                 .padding(contentPadding)
@@ -119,7 +140,6 @@ fun AddStudentScreen(navController: NavController, viewModel: StudentViewModel) 
                     )
                     .clip(CircleShape)
                     .clickable {
-
                         if (!hasRequiredPermissions(context)) {
                             ActivityCompat.requestPermissions(
                                 activityContext,
@@ -132,7 +152,10 @@ fun AddStudentScreen(navController: NavController, viewModel: StudentViewModel) 
                     },
                 contentAlignment = Alignment.Center
             ) {
-
+                Icon(
+                    imageVector = Icons.Filled.PhotoCamera,
+                    contentDescription = "Back"
+                )
                 imageState?.let {
                     Image(
                         bitmap = it.asImageBitmap(),
@@ -146,10 +169,15 @@ fun AddStudentScreen(navController: NavController, viewModel: StudentViewModel) 
                             )
                     )
                 }
-
-
             }
-
+            if (state.imagePathError != null) Text(
+                text = "${state.imagePathError}",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Start),
+                color = MaterialTheme.colorScheme.error,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
             Spacer(modifier = Modifier.height(50.dp))
             TextField(
                 value = state.firstName,
@@ -277,31 +305,27 @@ fun AddStudentScreen(navController: NavController, viewModel: StudentViewModel) 
                             saveBitmapToFile(bitmap = imageState!!, filePath = path)
                             viewModel.onEvent(StudentRegistrationFormEvent.ImageChanged(path))
                         }
-                        viewModel.onEvent(StudentRegistrationFormEvent.Submit)
                     }
+                    viewModel.onEvent(StudentRegistrationFormEvent.Submit)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = ColorConstants.myColor)
             ) {
                 Text(text = "Create Student")
             }
-
             Spacer(modifier = Modifier.height(70.dp))
-
-
         }
-
     }
 }
 
 
 @Composable
 fun ConfirmationAlertDialog(
-//    onDismissRequest: () -> Unit,
-//    onConfirmation: () -> Unit,
+    onDismissRequest: () -> Unit,
+    onConfirmation: () -> Unit,
     student: Student,
 ) {
     Dialog(
-        onDismissRequest = { /*TODO*/ },
+        onDismissRequest = { onDismissRequest },
     ) {
         Card(
             modifier = Modifier
